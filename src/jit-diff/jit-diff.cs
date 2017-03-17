@@ -45,6 +45,7 @@ namespace ManagedCodeGen
             private bool _frameworksOnly = false;
             private bool _benchmarksOnly = false;
             private bool _verbose = false;
+            private bool _fragile = false;
             private string _jobName;
             private string _number;
             private bool _lastSuccessful;
@@ -86,6 +87,7 @@ namespace ManagedCodeGen
                     syntax.DefineOption("f|frameworksonly", ref _frameworksOnly, "Disasm frameworks only");
                     syntax.DefineOption("benchmarksonly", ref _benchmarksOnly, "Disasm core benchmarks only");
                     syntax.DefineOption("v|verbose", ref _verbose, "Enable verbose output");
+                    syntax.DefineOption("fragile", ref _fragile, "Use FragileNonVersionable codegen (as oppposed to ReadyToRun).  This is a bit closer to jitted codegen.");
                     syntax.DefineOption("core_root", ref _platformPath, "Path to test CORE_ROOT.");
                     syntax.DefineOption("test_root", ref _testPath, "Path to test tree.");
 
@@ -431,6 +433,10 @@ namespace ManagedCodeGen
                             // Set flag from default for verbose.
                             var verbose = ExtractDefault<bool>("verbose", out found);
                             _verbose = (found) ? verbose : _verbose;
+
+                            // Set flag from default for fragile.
+                            var fragile = ExtractDefault<bool>("fragile", out found);
+                            _fragile = (found) ? fragile : _fragile;
                         }
                     }
                     else
@@ -502,6 +508,7 @@ namespace ManagedCodeGen
                     PrintDefault<string>("benchmarksonly");
                     PrintDefault<string>("tag");
                     PrintDefault<string>("verbose");
+                    PrintDefault<string>("fragile");
                     
                     Console.WriteLine();
                 }
@@ -532,6 +539,7 @@ namespace ManagedCodeGen
             public bool DoFrameworks { get { return !_corlibOnly && !_benchmarksOnly; } }
             public bool DoTestTree { get { return (!_corlibOnly && !_frameworksOnly); } }
             public bool Verbose { get { return _verbose; } }
+            public bool Fragile { get { return _fragile; } }
             public bool DoAnalyze { get { return _analyze; } }
             public Commands DoCommand { get { return _command; } }
             public string JobName { get { return _jobName; } }
@@ -944,6 +952,11 @@ namespace ManagedCodeGen
             if (config.Verbose)
             {
                 commandArgs.Add("--verbose");
+            }
+
+            if (config.Fragile)
+            {
+                commandArgs.Add("--fragile");
             }
 
             if (config.CoreLibOnly)

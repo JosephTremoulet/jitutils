@@ -44,6 +44,7 @@ namespace ManagedCodeGen
         private IReadOnlyList<string> _assemblyList = Array.Empty<string>();
         private bool _wait = false;
         private bool _recursive = false;
+        private bool _fragile = false;
         private IReadOnlyList<string> _methods = Array.Empty<string>();
         private IReadOnlyList<string> _platformPaths = Array.Empty<string>();
         private bool _dumpGCInfo = false;
@@ -64,6 +65,7 @@ namespace ManagedCodeGen
                 waitArg.IsHidden = true;
 
                 syntax.DefineOption("r|recursive", ref _recursive, "Scan directories recursively.");
+                syntax.DefineOption("fragile", ref _fragile, "Use FragileNonVersionable codegen (as oppposed to ReadyToRun).  This is a bit closer to jitted codegen.");
                 syntax.DefineOptionList("p|platform", ref _platformPaths, "Path to platform assemblies");
                 var methodsArg = syntax.DefineOptionList("m|methods", ref _methods,
                     "List of methods to disasm.");
@@ -143,6 +145,7 @@ namespace ManagedCodeGen
         public bool UseJitPath { get { return (_jitPath != null); } }
         public bool HasTag { get { return (_tag != null); } }
         public bool Recursive { get { return _recursive; } }
+        public bool Fragile { get { return _fragile; } }
         public bool UseFileName { get { return (_fileName != null); } }
         public bool DumpGCInfo { get { return _dumpGCInfo; } }
         public bool DoVerboseOutput { get { return _verbose; } }
@@ -389,6 +392,7 @@ namespace ManagedCodeGen
             private string _rootPath = null;
             private IReadOnlyList<string> _platformPaths;
             private string _jitPath = null;
+            private bool _fragile = false;
             private List<AssemblyInfo> _assemblyInfoList;
             public bool doGCDump = false;
             public bool verbose = false;
@@ -404,6 +408,7 @@ namespace ManagedCodeGen
                 _rootPath = outputPath;
                 _platformPaths = config.PlatformPaths;
                 _jitPath = config.JitPath;
+                _fragile = config.Fragile;
                 _assemblyInfoList = assemblyInfoList;
 
                 this.doGCDump = config.DumpGCInfo;
@@ -437,6 +442,12 @@ namespace ManagedCodeGen
                     {
                         commandArgs.Insert(0, "/JitPath");
                         commandArgs.Insert(1, _jitPath);
+                    }
+
+                    // Set /FragileNonVersionable if requested
+                    if (_fragile)
+                    {
+                        commandArgs.Insert(0, "/FragileNonVersionable");
                     }
                     
                     // Set platform assermbly path if it's defined.
