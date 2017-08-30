@@ -396,7 +396,8 @@ namespace ManagedCodeGen
                                             path = fd.path,
                                             name = md.name,
                                             deltaBytes = md.deltaBytes,
-                                            count = md.baseOffsets != null ? md.baseOffsets.Count() : 1
+                                            count = md.baseOffsets != null ? md.baseOffsets.Count() : 1,
+                                            baseBytes = md.baseBytes
                                         }).ToList();
             var sortedMethodImprovements = methodDeltaList
                                             .Where(x => x.deltaBytes < 0)
@@ -415,7 +416,7 @@ namespace ManagedCodeGen
 
                 foreach (var method in sortedMethodRegressions.GetRange(0, Math.Min(methodRegressionCount, requestedCount)))
                 {
-                    Console.Write("    {2,8} : {0} - {1}", method.path, method.name, method.deltaBytes);
+                    Console.Write("    {2,8} (of {3}) : {0} - {1}", method.path, method.name, method.deltaBytes, method.baseBytes);
                     if (method.count > 1)
                     {
                         Console.Write(" ({0} methods)", method.count);
